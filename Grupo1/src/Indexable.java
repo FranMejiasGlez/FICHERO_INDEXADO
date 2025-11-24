@@ -14,8 +14,4 @@ public abstract class Indexable {
     public abstract void posicionar(long valor);
 
     public abstract short getTamanioRegistro();
-
-    public abstract String cambiaACadenaFija(String dato, byte longitud);
-
-    public abstract String leerCaracteres(byte cantidad);
 }
