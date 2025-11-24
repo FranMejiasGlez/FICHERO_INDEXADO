@@ -11,6 +11,7 @@ import java.util.Comparator;
  */
 public class Empleado {
 
+    private String dni;
     private String nomApe;
     private Sexo sexo;
     private float salario;
@@ -18,13 +19,14 @@ public class Empleado {
     private Tipo tipo;
     private Provincia provincia;
 
-    public Empleado(String nomApe, Sexo sexo, float salario, Fecha fechaIngreso, Tipo tipo, Provincia provincia) {
-        if(nomApe.length() <= 30){
-           this.nomApe = nomApe; 
+    public Empleado(String dni, String nomApe, Sexo sexo, float salario, Fecha fechaIngreso, Tipo tipo, Provincia provincia) {
+        this.dni = dni;//REGEX
+        if (nomApe.length() <= 30) {
+            this.nomApe = nomApe;
         } else {
             this.nomApe = nomApe.substring(0, 30);
         }
-        
+
         this.sexo = sexo;
         this.salario = salario;
         this.fechaIngreso = fechaIngreso;
@@ -83,6 +85,10 @@ public class Empleado {
         return tipo;
     }
 
+    public String getDni() {
+        return dni;
+    }
+
     public void setTipo(Tipo tipo) {
         this.tipo = tipo;
     }
@@ -113,9 +119,7 @@ public class Empleado {
                 fechaIngreso, fechaIngreso.aniosTranscurridos(),
                 tipo, provincia);
     }
-    
     //@author andyj
-
     public static final Comparator<Empleado> BY_SALARIO = new Comparator<Empleado>() {
         @Override
         public int compare(Empleado o1, Empleado o2) {
