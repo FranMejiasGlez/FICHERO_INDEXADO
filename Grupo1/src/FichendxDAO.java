@@ -4,6 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import java.io.RandomAccessFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -35,15 +37,57 @@ public class FichendxDAO extends Indexable {
 
     //Buscar por clave --> DNI, cambiar registro por blanco/vacio/loquesea
     public void borrarEmple(String dni) {
-        
+        boolean existe;
+        short valor;
+        existe = super(indices).get(dni) != null;
+        if (existe) {
+            try {
+                valor = super(indices).get(dni);
+                posicionar(valor);
+                //Escribir DNI
+                this.nFich.writeUTF(cambiaACadenaFija("", (byte) 9));
+                //Escribir nomApe
+                this.nFich.writeUTF(cambiaACadenaFija("", (byte) 30));
+                //Escribir sexo
+                this.nFich.writeChar('\u0020');
+                //Escribir salario
+                this.nFich.writeFloat(0);
+                //Escribir anio ingreso
+                this.nFich.writeShort(0);
+                //Escribir mes ingreso
+                this.nFich.writeByte(0);
+                //Escribir dia ingreso
+                this.nFich.writeByte(0);
+                //Escribir tipo empleado
+                this.nFich.writeChar('\u0020');
+                //Escribir provincia empleado
+                this.nFich.writeByte(0);
+            } catch (IOException ex) {
+                System.out.println("Error borrando empleado");
+            }
+
+        }
     }
-    //Buscar por clave --> DNI, mostrar el registro, pedir cambio y 
+    //Buscar por clave --> DNI, mostrar el registro,
     //reescribir todo el registro mostrando el nuevo registro con el cambio
 
-    public Empleado modificarEmple(String dni) {
+    public Empleado modificarEmple(String dni, float salario) {
         Empleado emple = null;
-        
+        boolean existe;
+        short valor;
+        existe = super(indices).get(dni) != null;
+        if (existe) {
+            try {
+                valor = super(indices).get(dni);
+                posicionar(valor);
+                emple = leerRegistro();
+                emple.setDni(dni);
+                escribirEmpleado(emple);
 
+            } catch (IOException ex) {
+                System.out.println("Error modificando empleado");
+            }
+        }
         return emple;
     }
 
@@ -121,7 +165,7 @@ public class FichendxDAO extends Indexable {
         return emple;
     }
 
-//TODO: No esta completo creo xddd.sd.s,d.
+    //TODO: No esta completo creo xddd.sd.s,d.
     @Override
     public void posicionar(long valor) {
         try {

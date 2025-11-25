@@ -144,4 +144,8 @@ public class Empleado {
             return o1.getFechaIngreso().compareTo(o2.getFechaIngreso());
         }
     };
+
+    public void setDni(String dni) {
+        this.dni = dni;
+    }
 }
