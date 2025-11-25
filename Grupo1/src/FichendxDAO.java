@@ -1,16 +1,9 @@
 
-import java.io.DataInputStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
+
 import java.io.RandomAccessFile;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -42,13 +35,14 @@ public class FichendxDAO extends Indexable {
 
     //Buscar por clave --> DNI, cambiar registro por blanco/vacio/loquesea
     public void borrarEmple(String dni) {
+        
     }
     //Buscar por clave --> DNI, mostrar el registro, pedir cambio y 
     //reescribir todo el registro mostrando el nuevo registro con el cambio
 
     public Empleado modificarEmple(String dni) {
         Empleado emple = null;
-
+        
 
         return emple;
     }
@@ -164,7 +158,6 @@ public class FichendxDAO extends Indexable {
         return nombre;
     }
 
-    //TODO: Donde escribir usando el Treemap?
     public void escribirEmpleado(Empleado empleado) throws IOException {
         this.nFich.writeUTF(empleado.getDni());
         //Tratar el nombre para escribirlo fijo(30)caracteres
