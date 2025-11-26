@@ -2,8 +2,6 @@
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /*
  * To change this template, choose Tools | Templates
@@ -111,7 +109,7 @@ public class FichendxDAO extends Indexable {
     }
 
     @Override
-    public int getTAMANIO_REGISTRO() {
+    public int getTamanioRegistro() {
         return TAMANIO_REGISTRO;
     }
 
@@ -123,7 +121,7 @@ public class FichendxDAO extends Indexable {
                 posicionar(pos, nFich);
                 Empleado emple = (Empleado) registro;
                 // DNI nombre sexo y salario
-                nFich.writeChars(cambiarACadenaFija(emple.getDNI(), TAM_DNI));
+                nFich.writeChars(cambiarACadenaFija(emple.getDni(), TAM_DNI));
                 nFich.writeChars(cambiarACadenaFija(emple.getNomApe(), TAM_NOMBRE));
                 nFich.writeChar(emple.getSexo().getCodigo());
                 nFich.writeFloat(emple.getSalario());
@@ -134,7 +132,7 @@ public class FichendxDAO extends Indexable {
                 // tipo y provincia
                 nFich.writeChar(emple.getTipo().getCodigo());
                 nFich.writeByte(emple.getProvincia().getCodigo());
-                aniadirIndice(emple.getDNI(), pos);
+                aniadirIndice(emple.getDni(), pos);
             } catch (IOException ex) {
                 System.err.println("Error de E/S");
             }
