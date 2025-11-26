@@ -1,4 +1,5 @@
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.logging.Level;
@@ -17,7 +18,7 @@ public class FichendxDAO extends Indexable {
     private static short tamanioRegistro = 91;
     private String modoApertura;
     private RandomAccessFile nFich;
-    private boolean ff;
+    private boolean ff = false;
     private final byte tamDNI = 9;
     private final byte tamNombre = 30;
 
@@ -69,12 +70,23 @@ public class FichendxDAO extends Indexable {
             fecha = new Fecha(year, month, day);
             empleado = new Empleado(dni, nombre, Sexo.fromCodigo(sexo), salario, fecha, Tipo.fromCodigo(tipo), Provincia.fromCodigo(prov));
             return empleado;
+        } catch (EOFException eofe) {
+            ff = true;
+            
         } catch (IOException ex) {
             System.err.println("Error de E/S");
+            
+        }finally{
             return null;
         }
     }
+    public boolean isFf() {
+        return ff;
+    }
 
+    public void setFf(boolean aFf) {
+        ff = aFf;
+    }
     @Override
     public int getTamanioRegistro() {
         return tamanioRegistro;
@@ -84,6 +96,7 @@ public class FichendxDAO extends Indexable {
     public void escribirRegistro(Object registro) {
         if (registro instanceof Empleado) {
             try {
+                posicionar(getSiguienteHueco(nFich), nFich);
                 Empleado emple = (Empleado) registro;
                 //DNI nombre sexo y salario
                 cambiarACadenaFija(emple.getDNI(), tamDNI);
