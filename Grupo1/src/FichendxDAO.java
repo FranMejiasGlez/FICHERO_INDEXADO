@@ -15,17 +15,14 @@ import java.util.logging.Logger;
  */
 public class FichendxDAO extends Indexable {
 
-    private static short tamanioRegistro = 91;
-    private String modoApertura;
+    private static final short TAMANIO_REGISTRO = 91;
     private RandomAccessFile nFich;
     private boolean ff = false;
-    private final byte tamDNI = 9;
-    private final byte tamNombre = 30;
+    private static final byte TAM_DNI = 9;
+    private static final byte TAM_NOMBRE = 30;
 
-    public FichendxDAO(String modoApertura, RandomAccessFile nFich, short tamanioRegistro) {
-        this.modoApertura = modoApertura;
+    public FichendxDAO(RandomAccessFile nFich) {
         this.nFich = nFich;
-        this.tamanioRegistro = tamanioRegistro;
     }
 
     private String cambiarACadenaFija(String dato, byte longitud) {
@@ -53,33 +50,58 @@ public class FichendxDAO extends Indexable {
     @Override
     public Object leerRegistro() {
         try {
-            Empleado empleado;
-            Fecha fecha;
-            // leemos el resto para construir objeto empleado
-            String dni = leerCaracteres(tamDNI);
-            String nombre = leerCaracteres(tamNombre);
-            char sexo = nFich.readChar();
-            float salario = nFich.readFloat();
-            short year = nFich.readShort();
-            byte month = nFich.readByte();
-            byte day = nFich.readByte();
-            char tipo = nFich.readChar();
-            byte prov = nFich.readByte();
+            boolean esRegistroValido = false; // control del bucle
+            Empleado empleado = null; // registro a devolver
 
-            //Construimos el empleado
-            fecha = new Fecha(year, month, day);
-            empleado = new Empleado(dni, nombre, Sexo.fromCodigo(sexo), salario, fecha, Tipo.fromCodigo(tipo), Provincia.fromCodigo(prov));
-            return empleado;
+            while (!esRegistroValido) {
+
+                // Leer los campos del registro
+                String dni = leerCaracteres(TAM_DNI);
+                String nombre = leerCaracteres(TAM_NOMBRE);
+                char sexo = nFich.readChar();
+                float salario = nFich.readFloat();
+                short year = nFich.readShort();
+                byte month = nFich.readByte();
+                byte day = nFich.readByte();
+                char tipo = nFich.readChar();
+                byte prov = nFich.readByte();
+
+                // Detectar si es hueco (DNI lleno de '\0')
+                boolean esHueco = true;
+                for (int i = 0; i < dni.length(); i++) {
+                    if (dni.charAt(i) != '\0') {
+                        esHueco = false;
+                    }
+                }
+
+                // Si NO es hueco, preparar el empleado y marcar como válido
+                if (!esHueco) {
+                    Fecha fecha = new Fecha(year, month, day);
+                    empleado = new Empleado(
+                            dni,
+                            nombre,
+                            Sexo.fromCodigo(sexo),
+                            salario,
+                            fecha,
+                            Tipo.fromCodigo(tipo),
+                            Provincia.fromCodigo(prov));
+                    esRegistroValido = true; // ahora sí vamos a devolverlo
+                }
+
+                // Si es hueco → simplemente dejar que se repita el while
+            }
+
+            return empleado; // solo sale del while cuando es válido
+
         } catch (EOFException eofe) {
             ff = true;
-            
+            return null;
         } catch (IOException ex) {
-            System.err.println("Error de E/S");
-            
-        }finally{
+            System.err.println("Error de E/S leyendo registro");
             return null;
         }
     }
+
     public boolean isFf() {
         return ff;
     }
@@ -87,36 +109,38 @@ public class FichendxDAO extends Indexable {
     public void setFf(boolean aFf) {
         ff = aFf;
     }
+
     @Override
-    public int getTamanioRegistro() {
-        return tamanioRegistro;
+    public int getTAMANIO_REGISTRO() {
+        return TAMANIO_REGISTRO;
     }
 
     @Override
     public void escribirRegistro(Object registro) {
         if (registro instanceof Empleado) {
             try {
-                posicionar(getSiguienteHueco(nFich), nFich);
+                long pos = getSiguienteHueco(nFich);
+                posicionar(pos, nFich);
                 Empleado emple = (Empleado) registro;
-                //DNI nombre sexo y salario
-                cambiarACadenaFija(emple.getDNI(), tamDNI);
-                cambiarACadenaFija(emple.getNomApe(), tamNombre);
+                // DNI nombre sexo y salario
+                nFich.writeChars(cambiarACadenaFija(emple.getDNI(), TAM_DNI));
+                nFich.writeChars(cambiarACadenaFija(emple.getNomApe(), TAM_NOMBRE));
                 nFich.writeChar(emple.getSexo().getCodigo());
                 nFich.writeFloat(emple.getSalario());
-                //fecha
+                // fecha
                 nFich.writeShort(emple.getFechaIngreso().getAnio());
                 nFich.writeByte(emple.getFechaIngreso().getMes());
                 nFich.writeByte(emple.getFechaIngreso().getDia());
-                //tipo y provincia
+                // tipo y provincia
                 nFich.writeChar(emple.getTipo().getCodigo());
                 nFich.writeByte(emple.getProvincia().getCodigo());
+                aniadirIndice(emple.getDNI(), pos);
             } catch (IOException ex) {
                 System.err.println("Error de E/S");
             }
         } else {
             throw new IllegalArgumentException("El registro debe ser un empleado");
         }
-
 
     }
 }
