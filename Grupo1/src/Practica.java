@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,6 +88,7 @@ public class Practica {
             emple = new Empleado(dni, nombre, Sexo.fromCodigo(sexo), salario,
                     fecha, Tipo.fromCodigo(tipoEmple), Provincia.fromCodigo(provincia));
         } catch (IOException ioe) {
+            System.out.println("Error de E/S pidiendo datos");
         }
 
         return emple;
@@ -115,22 +117,28 @@ public class Practica {
     }
 
     public static void menu() {
+
+        System.out.println("");
         System.out.println("1.Altas");
         System.out.println("2.Bajas");
         System.out.println("3.Modificar salario");
         System.out.println("4.Listado de empleados, ordenado por DNI");
-        System.out.println("5.Listado de empleados por orden de almacenamiento");
+        System.out.println("5.Listado de empleados, orden de almacenamiento");
         System.out.println("6.Salir");
+        System.out.println("");
+        System.out.println("Introduce una opcion: ");
     }
 
     public static void main(String[] args) {
         try {
+            boolean esValido;
             Empleado emple;
             FichendxDAO fichendxDAO;
             RandomAccessFile raf;
             BufferedReader teclado;
             byte opcion = 0;
             String dni;
+            float salario = 0;
             teclado = new BufferedReader(new InputStreamReader(System.in));
             raf = new RandomAccessFile("fichendx.dat", "rw");
             fichendxDAO = new FichendxDAO(raf);
@@ -147,15 +155,8 @@ public class Practica {
                 }
                 switch (opcion) {
                     case 1://Alta de empleado
-                        try {
-                            emple=Practica.pedirDatos();
-                            fichendxDAO.escribirRegistro(emple);
-                            fichendxDAO.aniadirIndice(emple.getDni(),);//DONDE? XD
-                        } catch (FileNotFoundException ex) {
-                            System.out.println("Archivo no encontrado");
-                        } catch (IOException ex) {
-                            System.out.println("Error de E/S escribiendo empleado");
-                        }
+                        emple = Practica.pedirDatos();
+                        fichendxDAO.escribirRegistro(emple);
                         break;
                     case 2://Baja de empleado
                         System.out.println("Introduce el DNI del empleado a borrar: ");
@@ -163,16 +164,82 @@ public class Practica {
                             do {
                                 dni = teclado.readLine();
                             } while (!Practica.esDNIValido(dni));
+
+                            System.out.println(fichendxDAO.
+                                    borrarRegistro(dni, raf)
+                                    ? "Empleado borrado correctamente"
+                                    : "Empleado no ha podido ser borrado");
                         } catch (IOException ex) {
                             System.out.println("Error de E/S pidiendo DNI");
                         }
-                        fichendxDAO.borrarEmple("");
+
                         break;
                     case 3://Modificar salario empleado
+                        try {
+                            System.out.println("Introduce el DNI del empleado a cambiar sueldo: ");
+                            do {
+                                dni = teclado.readLine();
+                            } while (!Practica.esDNIValido(dni));
+                            emple = (Empleado) fichendxDAO.leerRegistro(dni, raf);
+                            System.out.println(emple != null
+                                    ? "Introduce nuevo salario"
+                                    : "No existe el empleado");
+                            if (emple != null) {
+                                do {
+                                    esValido = true;
+                                    try {
+                                        salario = Float.parseFloat(teclado.readLine());
+                                    } catch (NumberFormatException nfe) {
+                                        System.out.println("dato invalido, teclee otro");
+                                        esValido = false;
+                                    }
+                                } while (!esValido);
+                                emple.setSalario(salario);
+                                System.out.println(fichendxDAO.modificarRegistro(emple,
+                                        emple.getDni(), raf)
+                                        ? "Empleado modificado correctamente"
+                                        : "No se ha podido modificar empleado");
+                            }
+
+                        } catch (IOException ex) {
+                            System.out.println("Error de E/S pidiendo salario");
+                        }
+
+
                         break;
+
+
+
+
+
+
                     case 4://Listado por dni
+                        System.out.println("Listando por DNI");
+                        System.out.println("");
+                        for (Map.Entry<Object, Long> entrada : fichendxDAO.indices.entrySet()) {
+                            try {
+                                emple = (Empleado) fichendxDAO.
+                                        leerRegistro(entrada.getKey(), raf);
+                                System.out.println(emple.toString());
+                            } catch (IOException ex) {
+                                System.out.println("Error de E/S leyendo");
+                            }
+
+                        }
                         break;
-                    case 5://Listado por orden de almacenamiento
+                    case 5:
+                        try {
+                            //Listado por orden de almacenamiento
+                            raf.seek(0);
+                            while (raf.getFilePointer() < raf.length()) {
+                                emple = (Empleado) fichendxDAO.leerRegistro();
+                                if (emple != null) {
+                                    System.out.println(emple.toString());
+                                }
+                            }
+                        } catch (IOException ex) {
+                            System.out.println("Error de E/S listando por orden de almacenamiento");
+                        }
                         break;
                 }
             } while (opcion != 6);

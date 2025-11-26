@@ -40,16 +40,18 @@ public abstract class Indexable {
         }
     }
 
-    public boolean borrarRegistro(Object clave,RandomAccessFile raf) throws IOException {
+    public boolean borrarRegistro(Object clave, RandomAccessFile raf) throws IOException {
         if (!indices.containsKey(clave)) {
             return false;
         } else {
             long pos;
             StringBuilder construirHueco = new StringBuilder();
             construirHueco.setLength(getTamanioRegistro());
-            pos = posicionar(clave,raf);
+            pos = posicionar(clave, raf);
             raf.writeBytes(construirHueco.toString());
             aniadirHueco(pos);
+            indices.remove(clave);
+            guardarIndices();
             return true;
         }
     }
@@ -59,7 +61,7 @@ public abstract class Indexable {
             return false;
         } else {
             posicionar(claveRegistroACambiar, raf);
-
+            
             escribirRegistro(registro);
             return true;
         }
@@ -92,7 +94,7 @@ public abstract class Indexable {
             this.listaHuecos = (List) ois.readObject();
             return true;
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
             this.indices = new TreeMap();
             this.listaHuecos = new LinkedList();
         } catch (IOException ex) {
@@ -100,10 +102,12 @@ public abstract class Indexable {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            try {
-                fis.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
         return false;
@@ -115,25 +119,26 @@ public abstract class Indexable {
         raf.seek(posicion);
         return posicion;
     }
-    public void posicionar(long posicion, RandomAccessFile raf) throws IOException{
+
+    public void posicionar(long posicion, RandomAccessFile raf) throws IOException {
         raf.seek(posicion);
     }
-    
-    public void aniadirIndice(Object clave, long pos){
+
+    protected void aniadirIndice(Object clave, long pos) {
         this.indices.put(clave, pos);
     }
-    
-    public void aniadirHueco(long pos){
+
+    public void aniadirHueco(long pos) {
         listaHuecos.add(pos);
     }
-    
-    public long getSiguienteHueco(RandomAccessFile raf) throws IOException{
+
+    public long getSiguienteHueco(RandomAccessFile raf) throws IOException {
         try {
             return listaHuecos.remove(0);
         } catch (IndexOutOfBoundsException e) {
             return raf.length();
         }
-        
+
     }
 
     public abstract Object leerRegistro();

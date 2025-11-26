@@ -1,5 +1,6 @@
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -30,7 +31,7 @@ public class FichendxDAO extends Indexable {
         return new String(cadenaFija);
     }
 
-    private String leerCaracteres(byte cantidad) {
+    protected String leerCaracteres(byte cantidad) {
         char caracterNomApe;
         String nombre = "";
         for (int i = 1; i <= cantidad; i++) {
@@ -117,9 +118,14 @@ public class FichendxDAO extends Indexable {
     public void escribirRegistro(Object registro) {
         if (registro instanceof Empleado) {
             try {
-                long pos = getSiguienteHueco(nFich);
-                posicionar(pos, nFich);
+                long pos;
                 Empleado emple = (Empleado) registro;
+                if (!indices.containsKey(emple.getDni())) {
+                    pos = getSiguienteHueco(nFich);
+                } else {
+                    pos = indices.get(emple.getDni());
+                }
+                posicionar(pos, nFich);
                 // DNI nombre sexo y salario
                 nFich.writeChars(cambiarACadenaFija(emple.getDni(), TAM_DNI));
                 nFich.writeChars(cambiarACadenaFija(emple.getNomApe(), TAM_NOMBRE));
@@ -133,6 +139,8 @@ public class FichendxDAO extends Indexable {
                 nFich.writeChar(emple.getTipo().getCodigo());
                 nFich.writeByte(emple.getProvincia().getCodigo());
                 aniadirIndice(emple.getDni(), pos);
+                guardarIndices();
+
             } catch (IOException ex) {
                 System.err.println("Error de E/S");
             }
