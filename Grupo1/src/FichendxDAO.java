@@ -1,186 +1,33 @@
 
-import java.io.EOFException;
-
 import java.io.IOException;
-
 import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 /**
  *
- * @author Mejias Gonzalez Francisco
+ * @author Administrador
  */
 public class FichendxDAO extends Indexable {
 
-    private static boolean ff;
-    private RandomAccessFile nFich;
+    private static short tamanioRegistro = 91;
     private String modoApertura;
-    private short tamanioRegistro = 82;
+    private RandomAccessFile nFich;
+    private boolean ff;
+    private final byte tamDNI = 9;
+    private final byte tamNombre = 30;
 
-    public FichendxDAO(RandomAccessFile nFich, String modoApertura) {
+    public FichendxDAO(String modoApertura, RandomAccessFile nFich, short tamanioRegistro) {
+        this.modoApertura = modoApertura;
         this.nFich = nFich;
-        if (modoApertura.matches("r|rw")) {
-            this.modoApertura = modoApertura;
-        } else {
-            System.out.println("Modo de apertura no valido");
-        }
+        this.tamanioRegistro = tamanioRegistro;
     }
 
-    public static boolean isFf() {
-        return ff;
-    }
-
-    public static void setFf(boolean aFf) {
-        ff = aFf;
-    }
-
-    //Buscar por clave --> DNI, cambiar registro por blanco/vacio/loquesea
-    public void borrarEmple(String dni) {
-        boolean existe;
-        short valor;
-        existe = super(indices).get(dni) != null;
-        if (existe) {
-            try {
-                valor = super(indices).get(dni);
-                posicionar(valor);
-                //Escribir DNI
-                this.nFich.writeUTF(cambiaACadenaFija("", (byte) 9));
-                //Escribir nomApe
-                this.nFich.writeUTF(cambiaACadenaFija("", (byte) 30));
-                //Escribir sexo
-                this.nFich.writeChar('\u0020');
-                //Escribir salario
-                this.nFich.writeFloat(0);
-                //Escribir anio ingreso
-                this.nFich.writeShort(0);
-                //Escribir mes ingreso
-                this.nFich.writeByte(0);
-                //Escribir dia ingreso
-                this.nFich.writeByte(0);
-                //Escribir tipo empleado
-                this.nFich.writeChar('\u0020');
-                //Escribir provincia empleado
-                this.nFich.writeByte(0);
-            } catch (IOException ex) {
-                System.out.println("Error borrando empleado");
-            }
-
-        }
-    }
-    //Buscar por clave --> DNI, mostrar el registro,
-    //reescribir todo el registro mostrando el nuevo registro con el cambio
-
-    public Empleado modificarEmple(String dni, float salario) {
-        Empleado emple = null;
-        boolean existe;
-        short valor;
-        existe = super(indices).get(dni) != null;
-        if (existe) {
-            try {
-                valor = super(indices).get(dni);
-                posicionar(valor);
-                emple = leerRegistro();
-                emple.setDni(dni);
-                escribirEmpleado(emple);
-
-            } catch (IOException ex) {
-                System.out.println("Error modificando empleado");
-            }
-        }
-        return emple;
-    }
-
-    @Override
-    public Empleado leerRegistro() throws IOException {
-
-        setFf(false);
-
-        String dni, nomApe;
-        Sexo sexo;
-        float salario;
-        Fecha fecha;
-        short anio;
-        byte mes, dia;
-        Provincia provincia;
-        Tipo tipoEmpleado;
-        Empleado emple = null;
-
-        try {
-            dni = this.nFich.readUTF();
-            nomApe = leerCaracteres((byte) 30);
-            sexo = Sexo.fromCodigo(this.nFich.readChar());
-            salario = this.nFich.readFloat();
-            anio = this.nFich.readShort();
-            mes = this.nFich.readByte();
-            dia = this.nFich.readByte();
-            fecha = new Fecha(anio, mes, dia);//Validar fe
-            provincia = Provincia.fromCodigo(this.nFich.readByte());
-            tipoEmpleado = Tipo.fromCodigo(this.nFich.readChar());
-
-            emple = new Empleado(dni, nomApe, sexo, salario, fecha,
-                    tipoEmpleado, provincia);
-
-        } catch (EOFException eof) {
-            System.out.println("Fin de fichero");
-            setFf(true);
-        }
-
-        return emple;
-    }
-
-    @Override
-    public Empleado leerRegistro(long valor) throws IOException {
-        setFf(false);
-
-        String dni, nomApe;
-        Sexo sexo;
-        float salario;
-        Fecha fecha;
-        short anio;
-        byte mes, dia;
-        Provincia provincia;
-        Tipo tipoEmpleado;
-        Empleado emple = null;
-        try {
-            posicionar(valor);
-
-            dni = this.nFich.readUTF();
-            nomApe = leerCaracteres((byte) 30);
-            sexo = Sexo.fromCodigo(this.nFich.readChar());
-            salario = this.nFich.readFloat();
-            anio = this.nFich.readShort();
-            mes = this.nFich.readByte();
-            dia = this.nFich.readByte();
-            fecha = new Fecha(anio, mes, dia);//Validar fecha
-            provincia = Provincia.fromCodigo(this.nFich.readByte());
-            tipoEmpleado = Tipo.fromCodigo(this.nFich.readChar());
-
-            emple = new Empleado(dni, nomApe, sexo, salario, fecha,
-                    tipoEmpleado, provincia);
-        } catch (EOFException eof) {
-            System.out.println("Fin de fichero");
-            setFf(true);
-        }
-        return emple;
-    }
-
-    //TODO: No esta completo creo xddd.sd.s,d.
-    @Override
-    public void posicionar(long valor) {
-        try {
-            this.nFich.seek(valor);
-        } catch (IOException ex) {
-            System.out.println("Error de E/S posicionando cursor");
-        }
-    }
-
-    @Override
-    public short getTamanioRegistro() {
-        return this.tamanioRegistro;
-    }
-
-    private String cambiaACadenaFija(String dato, byte longitud) {
+    private String cambiarACadenaFija(String dato, byte longitud) {
         StringBuilder cadenaFija = new StringBuilder(dato);
         cadenaFija.setLength(longitud);
 
@@ -190,7 +37,7 @@ public class FichendxDAO extends Indexable {
     private String leerCaracteres(byte cantidad) {
         char caracterNomApe;
         String nombre = "";
-        for (int i = 1; i <= 30; i++) {
+        for (int i = 1; i <= cantidad; i++) {
             try {
                 caracterNomApe = this.nFich.readChar();
                 nombre = nombre + caracterNomApe;
@@ -202,16 +49,61 @@ public class FichendxDAO extends Indexable {
         return nombre;
     }
 
-    public void escribirEmpleado(Empleado empleado) throws IOException {
-        this.nFich.writeUTF(empleado.getDni());
-        //Tratar el nombre para escribirlo fijo(30)caracteres
-        this.nFich.writeUTF(cambiaACadenaFija(empleado.getNomApe(), (byte) 30));
-        this.nFich.writeChar(empleado.getSexo().getCodigo());
-        this.nFich.writeFloat(empleado.getSalario());
-        this.nFich.writeShort(empleado.getFechaIngreso().getAnio());
-        this.nFich.writeByte(empleado.getFechaIngreso().getMes());
-        this.nFich.writeByte(empleado.getFechaIngreso().getDia());
-        this.nFich.writeByte(empleado.getProvincia().getCodigo());
-        this.nFich.writeChar(empleado.getTipo().getCodigo());
+    @Override
+    public Object leerRegistro() {
+        try {
+            Empleado empleado;
+            Fecha fecha;
+            // leemos el resto para construir objeto empleado
+            String dni = leerCaracteres(tamDNI);
+            String nombre = leerCaracteres(tamNombre);
+            char sexo = nFich.readChar();
+            float salario = nFich.readFloat();
+            short year = nFich.readShort();
+            byte month = nFich.readByte();
+            byte day = nFich.readByte();
+            char tipo = nFich.readChar();
+            byte prov = nFich.readByte();
+
+            //Construimos el empleado
+            fecha = new Fecha(year, month, day);
+            empleado = new Empleado(dni, nombre, Sexo.fromCodigo(sexo), salario, fecha, Tipo.fromCodigo(tipo), Provincia.fromCodigo(prov));
+            return empleado;
+        } catch (IOException ex) {
+            System.err.println("Error de E/S");
+            return null;
+        }
+    }
+
+    @Override
+    public int getTamanioRegistro() {
+        return tamanioRegistro;
+    }
+
+    @Override
+    public void escribirRegistro(Object registro) {
+        if (registro instanceof Empleado) {
+            try {
+                Empleado emple = (Empleado) registro;
+                //DNI nombre sexo y salario
+                cambiarACadenaFija(emple.getDNI(), tamDNI);
+                cambiarACadenaFija(emple.getNomApe(), tamNombre);
+                nFich.writeChar(emple.getSexo().getCodigo());
+                nFich.writeFloat(emple.getSalario());
+                //fecha
+                nFich.writeShort(emple.getFechaIngreso().getAnio());
+                nFich.writeByte(emple.getFechaIngreso().getMes());
+                nFich.writeByte(emple.getFechaIngreso().getDia());
+                //tipo y provincia
+                nFich.writeChar(emple.getTipo().getCodigo());
+                nFich.writeByte(emple.getProvincia().getCodigo());
+            } catch (IOException ex) {
+                System.err.println("Error de E/S");
+            }
+        } else {
+            throw new IllegalArgumentException("El registro debe ser un empleado");
+        }
+
+
     }
 }
