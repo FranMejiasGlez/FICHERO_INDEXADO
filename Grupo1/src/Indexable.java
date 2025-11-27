@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  *
  * @author Grupo1 (co-op)
  */
-public abstract class Indexable {
+public abstract class Indexable<T> {
 
     final File FICHE_INDICES = new File("Indices.dat");
     List<Long> listaHuecos;
@@ -31,7 +31,7 @@ public abstract class Indexable {
         inicializarIndices();
     }
 
-    public Object leerRegistro(Object clave, RandomAccessFile raf) throws FileNotFoundException, IOException {
+    public T leerRegistro(Object clave, RandomAccessFile raf) throws FileNotFoundException, IOException {
         if (!indices.containsKey(clave)) {
             return null;
         } else {
@@ -56,7 +56,7 @@ public abstract class Indexable {
         }
     }
 
-    public boolean modificarRegistro(Object registro, Object claveRegistroACambiar, RandomAccessFile raf) throws IOException {
+    public boolean modificarRegistro(T registro, Object claveRegistroACambiar, RandomAccessFile raf) throws IOException {
         if (!indices.containsKey(claveRegistroACambiar)) {
             return false;
         } else {
@@ -141,9 +141,9 @@ public abstract class Indexable {
 
     }
 
-    public abstract Object leerRegistro();
+    public abstract T leerRegistro();
 
     public abstract int getTamanioRegistro();
 
-    public abstract void escribirRegistro(Object registro);
+    public abstract void escribirRegistro(T registro);
 }
