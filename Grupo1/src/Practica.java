@@ -12,6 +12,7 @@ import java.util.logging.Logger;
  *
  * @author Mejias Gonzalez Francisco\
  * @author Pablo
+ * @author Andy Jan
  */
 public class Practica {
 

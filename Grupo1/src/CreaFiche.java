@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Mejias Gonzalez Francisco
+ * @author Mejias Gonzalez Francisco, Andy Jan
  */
 public class CreaFiche {
     
@@ -24,7 +24,6 @@ public class CreaFiche {
     public static void main(String[] args) throws IOException {
         try {
             fiche = new File("fiche.dat");
-            List<Empleado> listaEmples = null;
             RandomAccessFile raf;
             raf = new RandomAccessFile("fichendx.dat", "rw");
             raf.setLength(0);

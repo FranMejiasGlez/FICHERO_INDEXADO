@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 /**
  *
- * @author Grupo1
+ * @author Grupo1 (co-op)
  */
 public abstract class Indexable {
 

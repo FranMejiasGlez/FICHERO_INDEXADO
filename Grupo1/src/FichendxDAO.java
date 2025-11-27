@@ -10,7 +10,7 @@ import java.io.RandomAccessFile;
  */
 /**
  *
- * @author Administrador
+ * @author Grupo 1 (co-op)
  */
 public class FichendxDAO extends Indexable {
 
@@ -41,7 +41,6 @@ public class FichendxDAO extends Indexable {
             } catch (IOException ex) {
                 System.out.println("Error de E/S leyendo caracteres de nomApe");
             }
-
         }
         return nombre;
     }

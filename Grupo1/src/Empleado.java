@@ -104,23 +104,21 @@ public class Empleado {
 
     @Override
     public String toString() {
-        /*return String.format(
-         "Empleado {%n"
-         + "  DNI: %s%n"
-         + "  Nombre: %s%n"
-         + "  Sexo: %s%n"
-         + "  Salario: %.2f€%n"
-         + "  Sueldo: %.2f€%n"
-         + "  Fecha Ingreso: %s%n"
-         + "  Años de Antigüedad: %d%n"
-         + "  Tipo: %s%n"
-         + "  Provincia: %s%n"
-         + "}",
+        return String.format(
+         "Empleado { DNI: %s, "
+                + "Nombre: %s, "
+                + "Sexo: %s, "
+                + "Salario: %.2f€, "
+                + "Sueldo: %.2f€, "
+                + "Fecha Ingreso: %s, "
+                + "Años de Antigüedad: %d, "
+                + "Tipo: %s, "
+                + "Provincia: %s }",
          dni, nomApe.trim(), sexo, salario, getSueldo(),
          fechaIngreso, fechaIngreso.aniosTranscurridos(),
          tipo, provincia);
-         */
-        return dni + " - " + nomApe.trim() + " - " + salario;
+         
+       //return dni + " - " + nomApe.trim() + " - " + salario;
     }
     //@author andyj
     public static final Comparator<Empleado> BY_SALARIO = new Comparator<Empleado>() {
