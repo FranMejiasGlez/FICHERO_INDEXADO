@@ -164,7 +164,11 @@ public class Practica {
                 switch (opcion) {
                     case 1://Alta de empleado
                         emple = Practica.pedirDatos();
-                        fichendxDAO.escribirRegistro(emple);
+                try {
+                    fichendxDAO.aniadirRegistro(emple, emple.getDni());
+                } catch (IOException ex) {
+                    System.err.println("Error al escribir el empleado");
+                }
                         break;
                     case 2://Baja de empleado
                         System.out.println("Introduce el DNI del empleado a borrar: ");
