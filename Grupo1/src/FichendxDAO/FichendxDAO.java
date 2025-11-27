@@ -1,4 +1,8 @@
+package FichendxDAO;
 
+
+import FichendxDAO.Registro.*;
+import Indexable.Indexable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -10,18 +14,17 @@ import java.io.RandomAccessFile;
  */
 /**
  *
- * @author Administrador
+ * @author Grupo 1 (co-op)
  */
-public class FichendxDAO extends Indexable {
+public class FichendxDAO extends Indexable<Empleado> {
 
     private static final short TAMANIO_REGISTRO = 91;
-    private RandomAccessFile nFich;
     private boolean ff = false;
     private static final byte TAM_DNI = 9;
     private static final byte TAM_NOMBRE = 30;
 
     public FichendxDAO(RandomAccessFile nFich) {
-        this.nFich = nFich;
+        super(nFich);
     }
 
     private String cambiarACadenaFija(String dato, byte longitud) {
@@ -41,13 +44,12 @@ public class FichendxDAO extends Indexable {
             } catch (IOException ex) {
                 System.out.println("Error de E/S leyendo caracteres de nomApe");
             }
-
         }
         return nombre;
     }
 
     @Override
-    public Object leerRegistro() {
+    public Empleado leerRegistro() {
         try {
             boolean esRegistroValido = false; // control del bucle
             Empleado empleado = null; // registro a devolver
@@ -115,38 +117,28 @@ public class FichendxDAO extends Indexable {
     }
 
     @Override
-    public void escribirRegistro(Object registro) {
-        if (registro instanceof Empleado) {
-            try {
-                long pos;
-                Empleado emple = (Empleado) registro;
-                if (!indices.containsKey(emple.getDni())) {
-                    pos = getSiguienteHueco(nFich);
-                } else {
-                    pos = indices.get(emple.getDni());
-                }
-                posicionar(pos, nFich);
-                // DNI nombre sexo y salario
-                nFich.writeChars(cambiarACadenaFija(emple.getDni(), TAM_DNI));
-                nFich.writeChars(cambiarACadenaFija(emple.getNomApe(), TAM_NOMBRE));
-                nFich.writeChar(emple.getSexo().getCodigo());
-                nFich.writeFloat(emple.getSalario());
-                // fecha
-                nFich.writeShort(emple.getFechaIngreso().getAnio());
-                nFich.writeByte(emple.getFechaIngreso().getMes());
-                nFich.writeByte(emple.getFechaIngreso().getDia());
-                // tipo y provincia
-                nFich.writeChar(emple.getTipo().getCodigo());
-                nFich.writeByte(emple.getProvincia().getCodigo());
-                aniadirIndice(emple.getDni(), pos);
-                guardarIndices();
+    public void escribirRegistro(Empleado registro) {
 
-            } catch (IOException ex) {
-                System.err.println("Error de E/S");
-            }
-        } else {
-            throw new IllegalArgumentException("El registro debe ser un empleado");
+        try {
+
+            // DNI nombre sexo y salario
+            nFich.writeChars(cambiarACadenaFija(registro.getDni(), TAM_DNI));
+            nFich.writeChars(cambiarACadenaFija(registro.getNomApe(), TAM_NOMBRE));
+            nFich.writeChar(registro.getSexo().getCodigo());
+            nFich.writeFloat(registro.getSalario());
+            // fecha
+            nFich.writeShort(registro.getFechaIngreso().getAnio());
+            nFich.writeByte(registro.getFechaIngreso().getMes());
+            nFich.writeByte(registro.getFechaIngreso().getDia());
+            // tipo y provincia
+            nFich.writeChar(registro.getTipo().getCodigo());
+            nFich.writeByte(registro.getProvincia().getCodigo());
+
+
+        } catch (IOException ex) {
+            System.err.println("Error de E/S");
         }
+
 
     }
 }

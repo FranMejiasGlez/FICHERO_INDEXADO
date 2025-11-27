@@ -1,4 +1,10 @@
 
+import FichendxDAO.Registro.Provincia;
+import FichendxDAO.Registro.Sexo;
+import FichendxDAO.Registro.Fecha;
+import FichendxDAO.Registro.Empleado;
+import FichendxDAO.Registro.Tipo;
+import FichendxDAO.FichendxDAO;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -40,7 +46,7 @@ public class CreaFiche {
                     try {
                         Empleado emple = leerRegistro(dis);
                         if (emple != null) {
-                            fid.escribirRegistro(emple);
+                            fid.aniadirRegistro(emple, emple.getDni());
                         }
                     } catch (FileNotFoundException ex) {
                         Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
