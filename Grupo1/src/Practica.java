@@ -1,10 +1,17 @@
 
+import FichendxDAO.Registro.Provincia;
+import FichendxDAO.Registro.Sexo;
+import FichendxDAO.Registro.Fecha;
+import FichendxDAO.Registro.Empleado;
+import FichendxDAO.Registro.Tipo;
+import FichendxDAO.FichendxDAO;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -167,7 +174,7 @@ public class Practica {
                             } while (!Practica.esDNIValido(dni));
 
                             System.out.println(fichendxDAO.
-                                    borrarRegistro(dni, raf)
+                                    borrarRegistro(dni)
                                     ? "Empleado borrado correctamente"
                                     : "Empleado no ha podido ser borrado");
                         } catch (IOException ex) {
@@ -181,7 +188,7 @@ public class Practica {
                             do {
                                 dni = teclado.readLine();
                             } while (!Practica.esDNIValido(dni));
-                            emple = (Empleado) fichendxDAO.leerRegistro(dni, raf);
+                            emple = (Empleado) fichendxDAO.leerRegistro(dni);
                             System.out.println(emple != null
                                     ? "Introduce nuevo salario"
                                     : "No existe el empleado");
@@ -197,7 +204,7 @@ public class Practica {
                                 } while (!esValido);
                                 emple.setSalario(salario);
                                 System.out.println(fichendxDAO.modificarRegistro(emple,
-                                        emple.getDni(), raf)
+                                        emple.getDni())
                                         ? "Empleado modificado correctamente"
                                         : "No se ha podido modificar empleado");
                             }
@@ -217,10 +224,11 @@ public class Practica {
                     case 4://Listado por dni
                         System.out.println("Listando por DNI");
                         System.out.println("");
-                        for (Map.Entry<Object, Long> entrada : fichendxDAO.indices.entrySet()) {
+                        TreeMap<String,Long> mapa = new TreeMap(fichendxDAO.getIndices());
+                        for (Map.Entry<String, Long> entrada : mapa.entrySet()) {
                             try {
                                 emple = (Empleado) fichendxDAO.
-                                        leerRegistro(entrada.getKey(), raf);
+                                        leerRegistro(entrada.getKey());
                                 System.out.println(emple.toString());
                             } catch (IOException ex) {
                                 System.out.println("Error de E/S leyendo");

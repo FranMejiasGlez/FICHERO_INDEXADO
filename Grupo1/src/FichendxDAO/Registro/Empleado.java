@@ -1,3 +1,5 @@
+package FichendxDAO.Registro;
+
 
 import java.util.Comparator;
 

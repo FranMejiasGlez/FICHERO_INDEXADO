@@ -1,3 +1,5 @@
+package Indexable;
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,29 +28,31 @@ public abstract class Indexable<T> {
     final File FICHE_INDICES = new File("Indices.dat");
     List<Long> listaHuecos;
     TreeMap<Object, Long> indices;
+    public RandomAccessFile nFich;
 
-    public Indexable() {
+    public Indexable(RandomAccessFile raf) {
         inicializarIndices();
+        nFich = raf;
     }
 
-    public T leerRegistro(Object clave, RandomAccessFile raf) throws FileNotFoundException, IOException {
+    public T leerRegistro(Object clave ) throws FileNotFoundException, IOException {
         if (!indices.containsKey(clave)) {
             return null;
         } else {
-            posicionar(clave, raf);
+            posicionar(clave);
             return leerRegistro();
         }
     }
 
-    public boolean borrarRegistro(Object clave, RandomAccessFile raf) throws IOException {
+    public boolean borrarRegistro(Object clave ) throws IOException {
         if (!indices.containsKey(clave)) {
             return false;
         } else {
             long pos;
             StringBuilder construirHueco = new StringBuilder();
             construirHueco.setLength(getTamanioRegistro());
-            pos = posicionar(clave, raf);
-            raf.writeBytes(construirHueco.toString());
+            pos = posicionar(clave);
+            nFich.writeBytes(construirHueco.toString());
             aniadirHueco(pos);
             indices.remove(clave);
             guardarIndices();
@@ -56,19 +60,34 @@ public abstract class Indexable<T> {
         }
     }
 
-    public boolean modificarRegistro(T registro, Object claveRegistroACambiar, RandomAccessFile raf) throws IOException {
+    public TreeMap<Object,Long> getIndices(){
+        return new TreeMap<>(indices);
+    }
+    public boolean modificarRegistro(T registro, Object claveRegistroACambiar ) throws IOException {
         if (!indices.containsKey(claveRegistroACambiar)) {
             return false;
         } else {
-            posicionar(claveRegistroACambiar, raf);
+            posicionar(claveRegistroACambiar);
             
             escribirRegistro(registro);
             return true;
         }
 
     }
+    
+    public boolean aniadirRegistro(T registro, Object claveRegistro) throws IOException{
+        if(existe(claveRegistro)){
+            return false;
+        }else {
+            posicionar(getSiguienteHueco());
+            aniadirIndice(claveRegistro,nFich.getFilePointer());
+            escribirRegistro(registro);
+            guardarIndices();
+            return true;
+        }
+    }
 
-    public void guardarIndices() throws IOException {
+    private void guardarIndices() throws IOException {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(this.FICHE_INDICES);
@@ -113,15 +132,15 @@ public abstract class Indexable<T> {
         return false;
     }
 
-    public long posicionar(Object clave, RandomAccessFile raf) throws IOException {
+    public long posicionar(Object clave ) throws IOException {
         long posicion = (long) indices.get(clave);
         // Go to that position
-        raf.seek(posicion);
+        nFich.seek(posicion);
         return posicion;
     }
 
-    public void posicionar(long posicion, RandomAccessFile raf) throws IOException {
-        raf.seek(posicion);
+    public void posicionar(long posicion ) throws IOException {
+        nFich.seek(posicion);
     }
 
     protected void aniadirIndice(Object clave, long pos) {
@@ -132,13 +151,17 @@ public abstract class Indexable<T> {
         listaHuecos.add(pos);
     }
 
-    public long getSiguienteHueco(RandomAccessFile raf) throws IOException {
+    private long getSiguienteHueco() throws IOException {
         try {
             return listaHuecos.remove(0);
         } catch (IndexOutOfBoundsException e) {
-            return raf.length();
+            return nFich.length();
         }
 
+    }
+    
+    public boolean existe(Object clave){
+        return indices.containsKey(clave);
     }
 
     public abstract T leerRegistro();

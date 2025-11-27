@@ -1,4 +1,8 @@
+package FichendxDAO;
 
+
+import FichendxDAO.Registro.*;
+import Indexable.Indexable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -15,13 +19,12 @@ import java.io.RandomAccessFile;
 public class FichendxDAO extends Indexable<Empleado> {
 
     private static final short TAMANIO_REGISTRO = 91;
-    private RandomAccessFile nFich;
     private boolean ff = false;
     private static final byte TAM_DNI = 9;
     private static final byte TAM_NOMBRE = 30;
 
     public FichendxDAO(RandomAccessFile nFich) {
-        this.nFich = nFich;
+        super(nFich);
     }
 
     private String cambiarACadenaFija(String dato, byte longitud) {
@@ -117,28 +120,20 @@ public class FichendxDAO extends Indexable<Empleado> {
     public void escribirRegistro(Empleado registro) {
 
         try {
-            long pos;
-            Empleado emple = (Empleado) registro;
-            if (!indices.containsKey(emple.getDni())) {
-                pos = getSiguienteHueco(nFich);
-            } else {
-                pos = indices.get(emple.getDni());
-            }
-            posicionar(pos, nFich);
+
             // DNI nombre sexo y salario
-            nFich.writeChars(cambiarACadenaFija(emple.getDni(), TAM_DNI));
-            nFich.writeChars(cambiarACadenaFija(emple.getNomApe(), TAM_NOMBRE));
-            nFich.writeChar(emple.getSexo().getCodigo());
-            nFich.writeFloat(emple.getSalario());
+            nFich.writeChars(cambiarACadenaFija(registro.getDni(), TAM_DNI));
+            nFich.writeChars(cambiarACadenaFija(registro.getNomApe(), TAM_NOMBRE));
+            nFich.writeChar(registro.getSexo().getCodigo());
+            nFich.writeFloat(registro.getSalario());
             // fecha
-            nFich.writeShort(emple.getFechaIngreso().getAnio());
-            nFich.writeByte(emple.getFechaIngreso().getMes());
-            nFich.writeByte(emple.getFechaIngreso().getDia());
+            nFich.writeShort(registro.getFechaIngreso().getAnio());
+            nFich.writeByte(registro.getFechaIngreso().getMes());
+            nFich.writeByte(registro.getFechaIngreso().getDia());
             // tipo y provincia
-            nFich.writeChar(emple.getTipo().getCodigo());
-            nFich.writeByte(emple.getProvincia().getCodigo());
-            aniadirIndice(emple.getDni(), pos);
-            guardarIndices();
+            nFich.writeChar(registro.getTipo().getCodigo());
+            nFich.writeByte(registro.getProvincia().getCodigo());
+
 
         } catch (IOException ex) {
             System.err.println("Error de E/S");

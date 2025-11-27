@@ -1,3 +1,5 @@
+package FichendxDAO.Registro;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -7,13 +9,14 @@
  *
  * @author andyj
  */
-public enum Sexo {
-    HOMBRE('H'),
-    MUJER('M');
-
+public enum Tipo {
+    COMISION('C'),
+    FIJO('F'),
+    DOMICILIO('D');
+    
     private final char codigo;
 
-    Sexo(char codigo) {
+    Tipo(char codigo) {
         this.codigo = codigo;
     }
 
@@ -21,9 +24,9 @@ public enum Sexo {
         return codigo;
     }
 
-    public static Sexo fromCodigo(char codigo) {
-        for (Sexo s : values()) {
-            if (s.codigo == codigo) return s;
+    public static Tipo fromCodigo(char codigo) {
+        for (Tipo t : values()) {
+            if (t.codigo == codigo) return t;
         }
         return null;
     }
