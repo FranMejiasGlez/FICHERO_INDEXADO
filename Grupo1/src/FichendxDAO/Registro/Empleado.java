@@ -9,7 +9,7 @@ import java.util.Comparator;
  */
 /**
  *
- * @author andyj
+ * @author andyj,pablo
  */
 public class Empleado {
 
@@ -20,7 +20,9 @@ public class Empleado {
     private Fecha fechaIngreso;
     private Tipo tipo;
     private Provincia provincia;
-
+    public static final byte TAM_DNI = 9;
+    public static final byte TAM_NOMBRE = 30;
+    
     public Empleado(String dni, String nomApe, Sexo sexo, float salario, Fecha fechaIngreso, Tipo tipo, Provincia provincia) {
         this.dni = dni;//REGEX
         if (nomApe.length() <= 30) {

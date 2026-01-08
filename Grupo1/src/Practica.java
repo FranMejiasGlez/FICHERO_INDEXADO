@@ -35,6 +35,7 @@ public class Practica {
         byte provincia = 0, mes, dia;
         Empleado emple = null;
 
+
         try {
 
             teclado = new BufferedReader(new InputStreamReader(System.in));
@@ -45,7 +46,7 @@ public class Practica {
             do {
                 System.out.print("Introduce un nombre y apellidos: ");
                 entrada = teclado.readLine();
-            } while (!Practica.esValido(entrada));
+            } while (!entrada.matches(""));
             nombre = entrada;
             do {
                 System.out.print("Sexo(M/H): ");
@@ -102,24 +103,6 @@ public class Practica {
         return emple;
     }
 
-    public static boolean esValido(String cadena) {
-
-        if (cadena == null) {
-            return false;
-        }
-        if (cadena.trim().isEmpty()) {
-            return false;
-        }
-
-        for (char c : cadena.toCharArray()) {
-
-            if (Character.isDigit(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public static boolean esDNIValido(String dni) {
         return dni.matches("^([XYZ]\\d{7}|\\d{8})[A-Z]$");
     }
@@ -149,7 +132,8 @@ public class Practica {
             float salario = 0;
             teclado = new BufferedReader(new InputStreamReader(System.in));
             raf = new RandomAccessFile("fichendx.dat", "rw");
-            fichendxDAO = new FichendxDAO(raf);
+            final byte TAMANIOREGISTRO = 91;
+            fichendxDAO = new FichendxDAO(raf, TAMANIOREGISTRO);
             do {
                 try {
                     do {
@@ -164,11 +148,11 @@ public class Practica {
                 switch (opcion) {
                     case 1://Alta de empleado
                         emple = Practica.pedirDatos();
-                try {
-                    fichendxDAO.aniadirRegistro(emple, emple.getDni());
-                } catch (IOException ex) {
-                    System.err.println("Error al escribir el empleado");
-                }
+                        try {
+                            fichendxDAO.aniadirRegistro(emple, emple.getDni());
+                        } catch (IOException ex) {
+                            System.err.println("Error al escribir el empleado");
+                        }
                         break;
                     case 2://Baja de empleado
                         System.out.println("Introduce el DNI del empleado a borrar: ");
@@ -228,7 +212,7 @@ public class Practica {
                     case 4://Listado por dni
                         System.out.println("Listando por DNI");
                         System.out.println("");
-                        TreeMap<String,Long> mapa = new TreeMap(fichendxDAO.getIndices());
+                        TreeMap<String, Long> mapa = new TreeMap(fichendxDAO.getIndices());
                         for (Map.Entry<String, Long> entrada : mapa.entrySet()) {
                             try {
                                 emple = (Empleado) fichendxDAO.

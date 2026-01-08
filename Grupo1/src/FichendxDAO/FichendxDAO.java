@@ -2,7 +2,8 @@ package FichendxDAO;
 
 
 import FichendxDAO.Registro.*;
-import Indexable.Indexable;
+import FichendxDAO.Registro.Empleado;
+import Indexable.FicheroIndexado;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -16,25 +17,27 @@ import java.io.RandomAccessFile;
  *
  * @author Grupo 1 (co-op)
  */
-public class FichendxDAO extends Indexable<Empleado> {
+public class FichendxDAO extends FicheroIndexado<Empleado> {
 
-    private static final short TAMANIO_REGISTRO = 91;
-    private boolean ff = false;
-    private static final byte TAM_DNI = 9;
-    private static final byte TAM_NOMBRE = 30;
-
-    public FichendxDAO(RandomAccessFile nFich) {
-        super(nFich);
+    //private static final short TAMANIO_REGISTRO = 91;
+//    private boolean ff = false;
+//    private static final byte TAM_DNI = 9;
+//    private static final byte TAM_NOMBRE = 30;
+//    private static int tamanioRegistro;
+    
+    public FichendxDAO(RandomAccessFile nFich,int tamanioRegistro) {
+        super(nFich,tamanioRegistro);
+        this.ff=false;
     }
 
-    private String cambiarACadenaFija(String dato, byte longitud) {
+    /*private String cambiarACadenaFija(String dato, byte longitud) {
         StringBuilder cadenaFija = new StringBuilder(dato);
         cadenaFija.setLength(longitud);
 
         return new String(cadenaFija);
-    }
+    }*/
 
-    protected String leerCaracteres(byte cantidad) {
+   /* protected String leerCaracteres(byte cantidad) {
         char caracterNomApe;
         String nombre = "";
         for (int i = 1; i <= cantidad; i++) {
@@ -46,7 +49,7 @@ public class FichendxDAO extends Indexable<Empleado> {
             }
         }
         return nombre;
-    }
+    }*/
 
     @Override
     public Empleado leerRegistro() {
@@ -57,8 +60,8 @@ public class FichendxDAO extends Indexable<Empleado> {
             while (!esRegistroValido) {
 
                 // Leer los campos del registro
-                String dni = leerCaracteres(TAM_DNI);
-                String nombre = leerCaracteres(TAM_NOMBRE);
+                String dni = leerCaracteres(Empleado.TAM_DNI);
+                String nombre = leerCaracteres(Empleado.TAM_NOMBRE);
                 char sexo = nFich.readChar();
                 float salario = nFich.readFloat();
                 short year = nFich.readShort();
@@ -107,13 +110,13 @@ public class FichendxDAO extends Indexable<Empleado> {
         return ff;
     }
 
-    public void setFf(boolean aFf) {
+    /*public void setFf(boolean aFf) {
         ff = aFf;
-    }
+    }*/
 
     @Override
     public int getTamanioRegistro() {
-        return TAMANIO_REGISTRO;
+        return this.tamanioRegistro;
     }
 
     @Override
@@ -122,8 +125,8 @@ public class FichendxDAO extends Indexable<Empleado> {
         try {
 
             // DNI nombre sexo y salario
-            nFich.writeChars(cambiarACadenaFija(registro.getDni(), TAM_DNI));
-            nFich.writeChars(cambiarACadenaFija(registro.getNomApe(), TAM_NOMBRE));
+            nFich.writeChars(cambiarACadenaFija(registro.getDni(), Empleado.TAM_DNI));
+            nFich.writeChars(cambiarACadenaFija(registro.getNomApe(), Empleado.TAM_NOMBRE));
             nFich.writeChar(registro.getSexo().getCodigo());
             nFich.writeFloat(registro.getSalario());
             // fecha

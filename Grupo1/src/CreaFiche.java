@@ -23,44 +23,10 @@ import java.util.logging.Logger;
  * @author Mejias Gonzalez Francisco, Andy Jan
  */
 public class CreaFiche {
-    
+
     public static boolean ff;
     public static File fiche;
-    
-    public static void main(String[] args) throws IOException {
-        try {
-            fiche = new File("fiche.dat");
-            RandomAccessFile raf;
-            raf = new RandomAccessFile("fichendx.dat", "rw");
-            raf.setLength(0);
-            FichendxDAO fid = new FichendxDAO(raf);
-            DataInputStream dis = null;
-            try {
-                dis = new DataInputStream(new FileInputStream(fiche));
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            if (dis != null) {
-                while (!ff) {
-                    try {
-                        Empleado emple = leerRegistro(dis);
-                        if (emple != null) {
-                            fid.aniadirRegistro(emple, emple.getDni());
-                        }
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IOException ex) {
-                        Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-    }
-    
+
     private static Empleado leerRegistro(DataInputStream data)
             throws FileNotFoundException, IOException {
         String dni;
@@ -74,7 +40,7 @@ public class CreaFiche {
         Tipo tipoEmpleFromChar;
         Fecha fechaIngreso;
         Empleado emple = null;
-        
+
         try {
             ff = false;
             //Leer nombreApes
@@ -98,20 +64,20 @@ public class CreaFiche {
             tipoEmpleFromChar = Tipo.fromCodigo(tipoEmple);
             //Leer provincia emple
             provincia = Provincia.fromCodigo(data.readByte());
-            
+
             dni = pedirDNI(nombreApes);
 
             //Construir el empleado con los datos leidos
             emple = new Empleado(dni, nombreApes, sexoFromChar,
                     salario, fechaIngreso, tipoEmpleFromChar, provincia);
-            
+
         } catch (EOFException eofe) {
             ff = true;
             System.out.println("Fin de fichero");
         }
         return emple;
     }
-    
+
     private static String pedirDNI(String nombre) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String dni = "";
@@ -124,5 +90,40 @@ public class CreaFiche {
             }
         } while (!dni.matches("^([XYZ]\\d{7}|\\d{8})[A-Z]$"));
         return dni;
+    }
+
+    public static void main(String[] args) throws IOException {
+        try {
+            fiche = new File("fiche.dat");
+            RandomAccessFile raf;
+            raf = new RandomAccessFile("fichendx.dat", "rw");
+            raf.setLength(0);
+            final byte tamanioRegistro = 91;
+            FichendxDAO fid = new FichendxDAO(raf, tamanioRegistro);
+            DataInputStream dis = null;
+            try {
+                dis = new DataInputStream(new FileInputStream(fiche));
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            if (dis != null) {
+                while (!ff) {
+                    try {
+                        Empleado emple = leerRegistro(dis);
+                        if (emple != null) {
+                            fid.aniadirRegistro(emple, emple.getDni());
+                        }
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 }

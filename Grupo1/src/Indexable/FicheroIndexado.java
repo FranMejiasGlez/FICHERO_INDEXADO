@@ -1,6 +1,5 @@
 package Indexable;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -15,27 +14,47 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
- * @author Grupo1 (co-op)
+ * @author Fran,Alvaro,Andy,Pablo
  */
-public abstract class Indexable<T> {
+public abstract class FicheroIndexado<T> {
 
     final File FICHE_INDICES = new File("Indices.dat");
     List<Long> listaHuecos;
     TreeMap<Object, Long> indices;
     public RandomAccessFile nFich;
+    public int tamanioRegistro;
+    public boolean ff;
 
-    public Indexable(RandomAccessFile raf) {
+    public FicheroIndexado(RandomAccessFile raf, int tamanioRegistro) {
         inicializarIndices();
         nFich = raf;
+        this.tamanioRegistro = tamanioRegistro;
     }
 
-    public T leerRegistro(Object clave ) throws FileNotFoundException, IOException {
+    protected String leerCaracteres(byte cantidad) {
+        char caracterNomApe;
+        String nombre = "";
+        for (int i = 1; i <= cantidad; i++) {
+            try {
+                caracterNomApe = this.nFich.readChar();
+                nombre = nombre + caracterNomApe;
+            } catch (IOException ex) {
+                System.out.println("Error de E/S leyendo caracteres de nomApe");
+            }
+        }
+        return nombre;
+    }
+
+    protected String cambiarACadenaFija(String dato, byte longitud) {
+        StringBuilder cadenaFija = new StringBuilder(dato);
+        cadenaFija.setLength(longitud);
+
+        return new String(cadenaFija);
+    }
+
+    public T leerRegistro(Object clave) throws FileNotFoundException, IOException {
         if (!indices.containsKey(clave)) {
             return null;
         } else {
@@ -44,7 +63,7 @@ public abstract class Indexable<T> {
         }
     }
 
-    public boolean borrarRegistro(Object clave ) throws IOException {
+    public boolean borrarRegistro(Object clave) throws IOException {
         if (!indices.containsKey(clave)) {
             return false;
         } else {
@@ -60,27 +79,28 @@ public abstract class Indexable<T> {
         }
     }
 
-    public TreeMap<Object,Long> getIndices(){
+    public TreeMap<Object, Long> getIndices() {
         return new TreeMap<>(indices);
     }
-    public boolean modificarRegistro(T registro, Object claveRegistroACambiar ) throws IOException {
+
+    public boolean modificarRegistro(T registro, Object claveRegistroACambiar) throws IOException {
         if (!indices.containsKey(claveRegistroACambiar)) {
             return false;
         } else {
             posicionar(claveRegistroACambiar);
-            
+
             escribirRegistro(registro);
             return true;
         }
 
     }
-    
-    public boolean aniadirRegistro(T registro, Object claveRegistro) throws IOException{
-        if(existe(claveRegistro)){
+
+    public boolean aniadirRegistro(T registro, Object claveRegistro) throws IOException {
+        if (existe(claveRegistro)) {
             return false;
-        }else {
+        } else {
             posicionar(getSiguienteHueco());
-            aniadirIndice(claveRegistro,nFich.getFilePointer());
+            aniadirIndice(claveRegistro, nFich.getFilePointer());
             escribirRegistro(registro);
             guardarIndices();
             return true;
@@ -89,7 +109,7 @@ public abstract class Indexable<T> {
 
     private void guardarIndices() throws IOException {
         FileOutputStream fos = null;
-        ObjectOutputStream oos=null;
+        ObjectOutputStream oos = null;
         try {
             fos = new FileOutputStream(this.FICHE_INDICES);
             oos = new ObjectOutputStream(fos);
@@ -114,33 +134,33 @@ public abstract class Indexable<T> {
             this.listaHuecos = (List) ois.readObject();
             return true;
         } catch (FileNotFoundException ex) {
-            //Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, ex);
             this.indices = new TreeMap();
             this.listaHuecos = new LinkedList();
         } catch (IOException ex) {
-            Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (fis != null) {
                 try {
                     fis.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(Indexable.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
         return false;
     }
 
-    public long posicionar(Object clave ) throws IOException {
+    public long posicionar(Object clave) throws IOException {
         long posicion = (long) indices.get(clave);
         // Go to that position
         nFich.seek(posicion);
         return posicion;
     }
 
-    public void posicionar(long posicion ) throws IOException {
+    public void posicionar(long posicion) throws IOException {
         nFich.seek(posicion);
     }
 
@@ -160,8 +180,8 @@ public abstract class Indexable<T> {
         }
 
     }
-    
-    public boolean existe(Object clave){
+
+    public boolean existe(Object clave) {
         return indices.containsKey(clave);
     }
 
