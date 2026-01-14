@@ -17,6 +17,10 @@ import java.util.logging.Logger;
 /**
  *
  * @author Fran,Alvaro,Andy,Pablo
+ * @Correcciones Fran --> Muevo al DAO leerCaracteres y CambiarACadenaFija Quito
+ * abstract de getTamanioRegistro 
+ * Quito atributo ff de DAO y lo muevo a Indexado
+ * Cambio protected por private en metodo aniadirIndice
  */
 public abstract class FicheroIndexado<T> {
 
@@ -33,25 +37,8 @@ public abstract class FicheroIndexado<T> {
         this.tamanioRegistro = tamanioRegistro;
     }
 
-    protected String leerCaracteres(byte cantidad) {
-        char caracterNomApe;
-        String nombre = "";
-        for (int i = 1; i <= cantidad; i++) {
-            try {
-                caracterNomApe = this.nFich.readChar();
-                nombre = nombre + caracterNomApe;
-            } catch (IOException ex) {
-                System.out.println("Error de E/S leyendo caracteres de nomApe");
-            }
-        }
-        return nombre;
-    }
-
-    protected String cambiarACadenaFija(String dato, byte longitud) {
-        StringBuilder cadenaFija = new StringBuilder(dato);
-        cadenaFija.setLength(longitud);
-
-        return new String(cadenaFija);
+    public boolean isFf() {
+        return ff;
     }
 
     public T leerRegistro(Object clave) throws FileNotFoundException, IOException {
@@ -164,11 +151,11 @@ public abstract class FicheroIndexado<T> {
         nFich.seek(posicion);
     }
 
-    protected void aniadirIndice(Object clave, long pos) {
+    private void aniadirIndice(Object clave, long pos) {
         this.indices.put(clave, pos);
     }
 
-    public void aniadirHueco(long pos) {
+    private void aniadirHueco(long pos) {
         listaHuecos.add(pos);
     }
 
@@ -187,7 +174,9 @@ public abstract class FicheroIndexado<T> {
 
     public abstract T leerRegistro();
 
-    public abstract int getTamanioRegistro();
+    public int getTamanioRegistro() {
+        return this.tamanioRegistro;
+    }
 
     public abstract void escribirRegistro(T registro);
 }

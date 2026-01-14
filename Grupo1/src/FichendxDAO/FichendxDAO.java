@@ -1,6 +1,5 @@
 package FichendxDAO;
 
-
 import FichendxDAO.Registro.*;
 import FichendxDAO.Registro.Empleado;
 import Indexable.FicheroIndexado;
@@ -9,35 +8,28 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 /**
  *
  * @author Grupo 1 (co-op)
+ * @Correcciones Fran Mejias --> Cambio el metodo getCodigo en la provincia por ordinal()+1 para que devuelva el numero de la provincia del registro
  */
 public class FichendxDAO extends FicheroIndexado<Empleado> {
 
-    //private static final short TAMANIO_REGISTRO = 91;
-//    private boolean ff = false;
-//    private static final byte TAM_DNI = 9;
-//    private static final byte TAM_NOMBRE = 30;
-//    private static int tamanioRegistro;
-    
-    public FichendxDAO(RandomAccessFile nFich,int tamanioRegistro) {
-        super(nFich,tamanioRegistro);
-        this.ff=false;
+   
+    public FichendxDAO(RandomAccessFile nFich, int tamanioRegistro) {
+        super(nFich, tamanioRegistro);
+        super.ff = false;
     }
 
-    /*private String cambiarACadenaFija(String dato, byte longitud) {
+    private String cambiarACadenaFija(String dato, byte longitud) {
         StringBuilder cadenaFija = new StringBuilder(dato);
         cadenaFija.setLength(longitud);
 
         return new String(cadenaFija);
-    }*/
+    }
 
-   /* protected String leerCaracteres(byte cantidad) {
+    private String leerCaracteres(byte cantidad) {
         char caracterNomApe;
         String nombre = "";
         for (int i = 1; i <= cantidad; i++) {
@@ -49,7 +41,7 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
             }
         }
         return nombre;
-    }*/
+    }
 
     @Override
     public Empleado leerRegistro() {
@@ -106,19 +98,6 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
         }
     }
 
-    public boolean isFf() {
-        return ff;
-    }
-
-    /*public void setFf(boolean aFf) {
-        ff = aFf;
-    }*/
-
-    @Override
-    public int getTamanioRegistro() {
-        return this.tamanioRegistro;
-    }
-
     @Override
     public void escribirRegistro(Empleado registro) {
 
@@ -135,7 +114,7 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
             nFich.writeByte(registro.getFechaIngreso().getDia());
             // tipo y provincia
             nFich.writeChar(registro.getTipo().getCodigo());
-            nFich.writeByte(registro.getProvincia().getCodigo());
+            nFich.writeByte(registro.getProvincia().ordinal()+1);
 
 
         } catch (IOException ex) {
