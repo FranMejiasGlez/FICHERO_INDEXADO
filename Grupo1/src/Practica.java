@@ -20,6 +20,7 @@ import java.util.logging.Logger;
  * @author Mejias Gonzalez Francisco\
  * @author Pablo
  * @author Andy Jan
+ * @correcciones Álvaro añadido close(), refactorización de nombre de metodos
  */
 public class Practica {
 
@@ -121,10 +122,10 @@ public class Practica {
     }
 
     public static void main(String[] args) {
+        FichendxDAO fichendxDAO = null;
         try {
             boolean esValido;
             Empleado emple;
-            FichendxDAO fichendxDAO;
             RandomAccessFile raf;
             BufferedReader teclado;
             byte opcion = 0;
@@ -149,7 +150,7 @@ public class Practica {
                     case 1://Alta de empleado
                         emple = Practica.pedirDatos();
                         try {
-                            fichendxDAO.aniadirRegistro(emple, emple.getDni());
+                            fichendxDAO.escribir(emple, emple.getDni());
                         } catch (IOException ex) {
                             System.err.println("Error al escribir el empleado");
                         }
@@ -162,7 +163,7 @@ public class Practica {
                             } while (!Practica.esDNIValido(dni));
 
                             System.out.println(fichendxDAO.
-                                    borrarRegistro(dni)
+                                    borrar(dni)
                                     ? "Empleado borrado correctamente"
                                     : "Empleado no ha podido ser borrado");
                         } catch (IOException ex) {
@@ -176,7 +177,7 @@ public class Practica {
                             do {
                                 dni = teclado.readLine();
                             } while (!Practica.esDNIValido(dni));
-                            emple = (Empleado) fichendxDAO.leerRegistro(dni);
+                            emple = (Empleado) fichendxDAO.leer(dni);
                             System.out.println(emple != null
                                     ? "Introduce nuevo salario"
                                     : "No existe el empleado");
@@ -191,7 +192,7 @@ public class Practica {
                                     }
                                 } while (!esValido);
                                 emple.setSalario(salario);
-                                System.out.println(fichendxDAO.modificarRegistro(emple,
+                                System.out.println(fichendxDAO.modificar(emple,
                                         emple.getDni())
                                         ? "Empleado modificado correctamente"
                                         : "No se ha podido modificar empleado");
@@ -216,7 +217,7 @@ public class Practica {
                         for (Map.Entry<String, Long> entrada : mapa.entrySet()) {
                             try {
                                 emple = (Empleado) fichendxDAO.
-                                        leerRegistro(entrada.getKey());
+                                        leer(entrada.getKey());
                                 System.out.println(emple.toString());
                             } catch (IOException ex) {
                                 System.out.println("Error de E/S leyendo");
@@ -229,7 +230,7 @@ public class Practica {
                             //Listado por orden de almacenamiento
                             raf.seek(0);
                             while (raf.getFilePointer() < raf.length()) {
-                                emple = (Empleado) fichendxDAO.leerRegistro();
+                                emple = (Empleado) fichendxDAO.leer();
                                 if (emple != null) {
                                     System.out.println(emple.toString());
                                 }
@@ -242,6 +243,9 @@ public class Practica {
             } while (opcion != 6);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Practica.class.getName()).log(Level.SEVERE, null, ex);
+        }finally{
+            fichendxDAO.close();
         }
+        
     }
 }

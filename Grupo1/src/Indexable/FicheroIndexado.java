@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
@@ -18,18 +19,20 @@ import java.util.logging.Logger;
  *
  * @author Fran,Alvaro,Andy,Pablo
  * @Correcciones Fran --> Muevo al DAO leerCaracteres y CambiarACadenaFija Quito
- * abstract de getTamanioRegistro 
- * Quito atributo ff de DAO y lo muevo a Indexado
+ * abstract de getTamanioRegistro Quito atributo ff de DAO y lo muevo a Indexado
  * Cambio protected por private en metodo aniadirIndice
+ * @Correcciones Álvaro --> cambio de nombres de metodos leer y escribir,
+ * añadido close() y nueva gestión de huecos al cerrar el fichero. Cambiar ff al
+ * DAO, cambio de algunos accesos.
+ *
  */
 public abstract class FicheroIndexado<T> {
 
-    final File FICHE_INDICES = new File("Indices.dat");
-    List<Long> listaHuecos;
-    TreeMap<Object, Long> indices;
+    private final File FICHE_INDICES = new File("Indices.dat");
+    private List<Long> listaHuecos;
+    private TreeMap<Object, Long> indices;
     public RandomAccessFile nFich;
-    public int tamanioRegistro;
-    public boolean ff;
+    private int tamanioRegistro;
 
     public FicheroIndexado(RandomAccessFile raf, int tamanioRegistro) {
         inicializarIndices();
@@ -37,20 +40,16 @@ public abstract class FicheroIndexado<T> {
         this.tamanioRegistro = tamanioRegistro;
     }
 
-    public boolean isFf() {
-        return ff;
-    }
-
-    public T leerRegistro(Object clave) throws FileNotFoundException, IOException {
+    public T leer(Object clave) throws FileNotFoundException, IOException {
         if (!indices.containsKey(clave)) {
             return null;
         } else {
             posicionar(clave);
-            return leerRegistro();
+            return leer();
         }
     }
 
-    public boolean borrarRegistro(Object clave) throws IOException {
+    public boolean borrar(Object clave) throws IOException {
         if (!indices.containsKey(clave)) {
             return false;
         } else {
@@ -70,25 +69,25 @@ public abstract class FicheroIndexado<T> {
         return new TreeMap<>(indices);
     }
 
-    public boolean modificarRegistro(T registro, Object claveRegistroACambiar) throws IOException {
+    public boolean modificar(T registro, Object claveRegistroACambiar) throws IOException {
         if (!indices.containsKey(claveRegistroACambiar)) {
             return false;
         } else {
             posicionar(claveRegistroACambiar);
 
-            escribirRegistro(registro);
+            escribir(registro);
             return true;
         }
 
     }
 
-    public boolean aniadirRegistro(T registro, Object claveRegistro) throws IOException {
+    public boolean escribir(T registro, Object claveRegistro) throws IOException {
         if (existe(claveRegistro)) {
             return false;
         } else {
             posicionar(getSiguienteHueco());
             aniadirIndice(claveRegistro, nFich.getFilePointer());
-            escribirRegistro(registro);
+            escribir(registro);
             guardarIndices();
             return true;
         }
@@ -102,7 +101,6 @@ public abstract class FicheroIndexado<T> {
             oos = new ObjectOutputStream(fos);
 
             oos.writeObject(this.indices);
-            oos.writeObject(this.listaHuecos);
         } catch (IOException ioe) {
         } finally {
             if (oos != null) {
@@ -118,10 +116,10 @@ public abstract class FicheroIndexado<T> {
             ObjectInputStream ois = new ObjectInputStream(fis);
 
             this.indices = (TreeMap) ois.readObject();
-            this.listaHuecos = (List) ois.readObject();
+            this.listaHuecos = new LinkedList();
+
             return true;
         } catch (FileNotFoundException ex) {
-            //Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, ex);
             this.indices = new TreeMap();
             this.listaHuecos = new LinkedList();
         } catch (IOException ex) {
@@ -142,7 +140,6 @@ public abstract class FicheroIndexado<T> {
 
     public long posicionar(Object clave) throws IOException {
         long posicion = (long) indices.get(clave);
-        // Go to that position
         nFich.seek(posicion);
         return posicion;
     }
@@ -172,11 +169,83 @@ public abstract class FicheroIndexado<T> {
         return indices.containsKey(clave);
     }
 
-    public abstract T leerRegistro();
+    public abstract T leer();
 
     public int getTamanioRegistro() {
         return this.tamanioRegistro;
     }
 
-    public abstract void escribirRegistro(T registro);
+    public abstract void escribir(T registro);
+
+    public void close() {
+        try {
+            //Ordenar lista de huecos
+            if (listaHuecos != null) {
+                Collections.sort(listaHuecos); 
+            }
+            boolean seguir = true;
+            while (seguir) {
+
+                // Seguimos si hay huecos y hay registros que no esten borrados
+                seguir = (listaHuecos != null && !listaHuecos.isEmpty()
+                        && indices != null && !indices.isEmpty());
+                if (seguir) {
+
+                    long posHueco = listaHuecos.get(0);
+                    long posUltimoVivo = -1;
+                    for (Long p : indices.values()) {
+                        if (p != null && p.longValue() > posUltimoVivo) {
+                            posUltimoVivo = p.longValue();
+                        }
+                    }
+                    // Solo movemos si el último está detrás del hueco
+                    seguir = (posUltimoVivo > posHueco);
+                    if (seguir) {
+                        // Mover byte a byte
+                        for (int i = 0; i < tamanioRegistro; i++) {
+                            nFich.seek(posUltimoVivo + i);
+                            byte b = nFich.readByte();
+
+                            nFich.seek(posHueco + i);
+                            nFich.writeByte(b);
+                        }
+
+                        // Actualizar índice
+                        Object claveMovida = null;
+                        for (Object clave : indices.keySet()) {
+                            Long pos = indices.get(clave);
+                            if (claveMovida == null && pos != null && pos.longValue() == posUltimoVivo) {
+                                claveMovida = clave;
+                            }
+                        }
+                        if (claveMovida != null) {
+                            indices.put(claveMovida, posHueco);
+                        }
+
+                        // El hueco ya está lleno
+                        listaHuecos.remove(0);
+                    }
+                }
+            }
+            // Truncado final para que no haya huecos
+            long maxVivo = -1;
+            if (indices != null && !indices.isEmpty()) {
+                for (Long p : indices.values()) {
+                    if (p != null && p.longValue() > maxVivo) {
+                        maxVivo = p.longValue();
+                    }
+                }
+                nFich.setLength(maxVivo + tamanioRegistro);
+            } else {
+                nFich.setLength(0);
+            }
+            if (listaHuecos != null) {
+                listaHuecos.clear();
+            }
+            guardarIndices();
+            nFich.close();
+        } catch (IOException e) {
+            Logger.getLogger(FicheroIndexado.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
 }

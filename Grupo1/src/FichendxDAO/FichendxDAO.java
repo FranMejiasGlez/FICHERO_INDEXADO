@@ -4,7 +4,6 @@ import FichendxDAO.Registro.*;
 import FichendxDAO.Registro.Empleado;
 import Indexable.FicheroIndexado;
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -12,14 +11,16 @@ import java.io.RandomAccessFile;
 /**
  *
  * @author Grupo 1 (co-op)
- * @Correcciones Fran Mejias --> Cambio el metodo getCodigo en la provincia por ordinal()+1 para que devuelva el numero de la provincia del registro
- */
+ * @Correcciones Fran Mejias --> Cambio el metodo getCodigo en la provincia por 
+ * ordinal()+1 para que devuelva el numero de la provincia del registro
+ * @Correcciones Álvaro --> Añadido isFF, refactorización de nombre de metodos
+ * */
 public class FichendxDAO extends FicheroIndexado<Empleado> {
-
+    private boolean ff;
    
     public FichendxDAO(RandomAccessFile nFich, int tamanioRegistro) {
         super(nFich, tamanioRegistro);
-        super.ff = false;
+        ff = false;
     }
 
     private String cambiarACadenaFija(String dato, byte longitud) {
@@ -44,7 +45,7 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
     }
 
     @Override
-    public Empleado leerRegistro() {
+    public Empleado leer() {
         try {
             boolean esRegistroValido = false; // control del bucle
             Empleado empleado = null; // registro a devolver
@@ -99,7 +100,7 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
     }
 
     @Override
-    public void escribirRegistro(Empleado registro) {
+    public void escribir(Empleado registro) {
 
         try {
 
@@ -120,7 +121,11 @@ public class FichendxDAO extends FicheroIndexado<Empleado> {
         } catch (IOException ex) {
             System.err.println("Error de E/S");
         }
+        
 
+    }
 
+    public boolean isFf() {
+        return ff;
     }
 }

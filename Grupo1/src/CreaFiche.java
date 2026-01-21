@@ -112,7 +112,7 @@ public class CreaFiche {
                     try {
                         Empleado emple = leerRegistro(dis);
                         if (emple != null) {
-                            fid.aniadirRegistro(emple, emple.getDni());
+                            fid.escribir(emple, emple.getDni());
                         }
                     } catch (FileNotFoundException ex) {
                         Logger.getLogger(CreaFiche.class.getName()).log(Level.SEVERE, null, ex);
